@@ -13,7 +13,7 @@ const { chains, publicClient } = configureChains(
 
 const { connectors } = getDefaultWallets({
   appName: 'Betting DApp',
-  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID as string,
+  projectId: 'cfcfff3713397dd7fc0883ae81502256',
   chains,
 });
 
