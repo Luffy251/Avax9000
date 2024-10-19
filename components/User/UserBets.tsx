@@ -52,7 +52,7 @@ const UserBets: React.FC = () => {
                 abi: CONTRACT_ABI,
                 functionName: 'bets',
                 args: [BigInt(i)],
-              }) as any;
+              })as any;
               fetchedBets.push({
                 id: i,
                 description: bet.description,
@@ -86,7 +86,7 @@ const UserBets: React.FC = () => {
     <div className="mt-8">
       <h2 className="text-2xl font-bold mb-4">My Bets</h2>
       {userBets.length === 0 ? (
-        <p>You haven't placed any bets yet.</p>
+        <p>You have not placed any bets yet.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {userBets.map((bet) => (
