@@ -270,7 +270,7 @@ const UserBets: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center py-12"
           >
-            <p className="text-gray-600 text-lg">You haven't placed any bets yet.</p>
+            <p className="text-gray-600 text-lg">You have not placed any bets yet.</p>
           </motion.div>
         ) : (
           <>
