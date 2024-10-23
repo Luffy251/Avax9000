@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 import { usePublicClient, useAccount, useContractRead } from 'wagmi';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../../config';
 import { formatEther } from 'viem';
@@ -63,9 +64,48 @@ const UserWinnings: React.FC = () => {
   }
 
   return (
-    <div className="mt-8">
-      <h2 className="text-2xl font-bold mb-4">My Total Winnings</h2>
-      <p className="text-xl">{totalWinnings} AVAX</p>
+    <div className="bg-white rounded-2xl shadow-lg p-6">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">My Total Winnings</h2>
+      
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white"
+      >
+        <div className="relative z-10">
+          <p className="text-blue-100 mb-2">Total Earnings</p>
+          <div className="flex items-baseline space-x-2">
+            <span className="text-4xl font-bold">{totalWinnings}</span>
+            <span className="text-xl text-blue-100">AVAX</span>
+          </div>
+        </div>
+        
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10" />
+        <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full -ml-10 -mb-10" />
+      </motion.div>
+
+      <div className="mt-6 space-y-4">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="flex justify-between items-center p-4 bg-gray-50 rounded-xl"
+        >
+          <span className="text-gray-600">Status</span>
+          <span className="font-medium text-green-600">Available</span>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex justify-between items-center p-4 bg-gray-50 rounded-xl"
+        >
+          <span className="text-gray-600">Network</span>
+          <span className="font-medium text-gray-800">Avalanche Fuji</span>
+        </motion.div>
+      </div>
     </div>
   );
 };
