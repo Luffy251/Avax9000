@@ -8,7 +8,7 @@ const MyBetsPage: NextPage = () => {
   return (
     <Layout>
       <Head>
-        <title>My Bets - Betting DApp</title>
+        <title>My Bets - BetWin</title>
         <meta name="description" content="View your bets and winnings on our decentralized betting platform" />
       </Head>
 
