@@ -21,16 +21,14 @@ const CreateBet: React.FC = () => {
     hash: createBetData?.hash,
   });
 
-  // Reset form and handle success state
   useEffect(() => {
     if (isSuccess) {
       setShowSuccess(true);
       setDescription('');
       
-      // Hide success message after 3 seconds and redirect
       const timer = setTimeout(() => {
         setShowSuccess(false);
-        router.push('/all-bets'); // Redirect to all bets page
+        router.push('/all-bets');
       }, 3000);
 
       return () => clearTimeout(timer);
@@ -52,7 +50,6 @@ const CreateBet: React.FC = () => {
     }
   };
 
-  // Reset form function
   const resetForm = () => {
     setDescription('');
     setShowSuccess(false);
@@ -69,7 +66,6 @@ const CreateBet: React.FC = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
             Create a New Bet
           </h1>
-          {/* Reset button */}
           {description && !isSubmitting && (
             <motion.button
               initial={{ opacity: 0 }}
@@ -95,7 +91,7 @@ const CreateBet: React.FC = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="E.g., Will Bitcoin reach $100,000 by the end of 2024?"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 min-h-[120px] text-gray-800"
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 min-h-[120px] text-gray-800"
               whileFocus={{ scale: 1.01 }}
               disabled={isSubmitting || isWaitingForTransaction}
             />
@@ -109,8 +105,8 @@ const CreateBet: React.FC = () => {
             disabled={!description || isSubmitting || isWaitingForTransaction}
             className={`w-full py-3 rounded-lg font-medium text-white transition-all duration-200 
               ${(!description || isSubmitting || isWaitingForTransaction) 
-                ? 'bg-blue-400 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700'}`}
+                ? 'bg-purple-400 cursor-not-allowed' 
+                : 'bg-purple-500 hover:bg-purple-600'}`}
             whileHover={!isSubmitting ? { scale: 1.02 } : {}}
             whileTap={!isSubmitting ? { scale: 0.98 } : {}}
           >

@@ -25,7 +25,6 @@ const BetItem: React.FC<BetItemProps> = ({ bet, betId }) => {
     hash: placeBetData?.hash,
   });
 
-  // Handle click outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (betCardRef.current && !betCardRef.current.contains(event.target as Node)) {
@@ -134,8 +133,8 @@ const BetItem: React.FC<BetItemProps> = ({ bet, betId }) => {
                 disabled={isPlacingBet || isWaitingForTransaction}
                 className={`w-full py-3 rounded-lg font-medium text-white transition-colors duration-200 ${
                   isPlacingBet || isWaitingForTransaction
-                    ? 'bg-blue-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700'
+                    ? 'bg-purple-400 cursor-not-allowed'
+                    : 'bg-purple-500 hover:bg-purple-600'
                 }`}
               >
                 {isPlacingBet || isWaitingForTransaction ? 'Placing Bet...' : 'Place Bet'}

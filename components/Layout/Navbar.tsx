@@ -17,7 +17,6 @@ const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => {
     setIsOpen(false);
   }, [router.pathname]);
@@ -31,7 +30,9 @@ const Navbar: React.FC = () => {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-blue-600/95 backdrop-blur-sm shadow-lg' : 'bg-blue-600'
+        isScrolled 
+          ? 'bg-gray-900/95 backdrop-blur-sm shadow-lg border-b border-purple-500/20' 
+          : 'bg-gradient-to-r from-gray-900 via-purple-900 to-gray-900'
       }`}
     >
       <div className="container mx-auto px-4">
@@ -40,13 +41,11 @@ const Navbar: React.FC = () => {
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="text-white font-bold text-xl cursor-pointer"
+              className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 font-bold text-xl cursor-pointer"
             >
               BetWin
             </motion.div>
           </Link>
-
-          {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-4">
             {menuItems.map((item) => (
               <Link
@@ -54,24 +53,20 @@ const Navbar: React.FC = () => {
                 href={item.path}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
                   router.pathname === item.path
-                    ? 'text-white bg-blue-700'
-                    : 'text-blue-100 hover:text-white hover:bg-blue-700'
+                    ? 'text-white bg-purple-500/20 border border-purple-500/50'
+                    : 'text-gray-300 hover:text-white hover:bg-purple-500/10'
                 }`}
               >
                 {item.label}
               </Link>
             ))}
           </div>
-
-          {/* Connect Button - Always visible */}
           <div className="flex items-center space-x-4">
             <ConnectButton />
-            
-            {/* Mobile Menu Button */}
             <div className="md:hidden">
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="text-white focus:outline-none p-2"
+                className="text-gray-300 hover:text-white focus:outline-none p-2"
               >
                 <svg
                   className="h-6 w-6"
@@ -92,8 +87,6 @@ const Navbar: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Mobile Menu */}
         <motion.div
           initial={false}
           animate={isOpen ? 'open' : 'closed'}
@@ -111,8 +104,8 @@ const Navbar: React.FC = () => {
                 href={item.path}
                 className={`block px-3 py-2 rounded-lg text-base font-medium transition-colors duration-200 ${
                   router.pathname === item.path
-                    ? 'text-white bg-blue-700'
-                    : 'text-blue-100 hover:text-white hover:bg-blue-700'
+                    ? 'text-white bg-purple-500/20 border border-purple-500/50'
+                    : 'text-gray-300 hover:text-white hover:bg-purple-500/10'
                 }`}
               >
                 {item.label}

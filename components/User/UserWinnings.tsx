@@ -70,17 +70,15 @@ const UserWinnings: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white"
+        className="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white"
       >
         <div className="relative z-10">
-          <p className="text-blue-100 mb-2">Total Earnings</p>
+          <p className="text-purple-100 mb-2">Total Earnings</p>
           <div className="flex items-baseline space-x-2">
             <span className="text-4xl font-bold">{totalWinnings}</span>
-            <span className="text-xl text-blue-100">AVAX</span>
+            <span className="text-xl text-purple-100">AVAX</span>
           </div>
         </div>
-        
-        {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10" />
         <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full -ml-10 -mb-10" />
       </motion.div>
@@ -95,7 +93,6 @@ const UserWinnings: React.FC = () => {
           <span className="text-gray-600">Status</span>
           <span className="font-medium text-green-600">Available</span>
         </motion.div>
-
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
