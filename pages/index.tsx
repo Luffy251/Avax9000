@@ -121,9 +121,9 @@ const Home: NextPage = () => {
               <div className="absolute -top-6 -right-6 text-4xl animate-bounce">🎲</div>
             </div>
             <p className="text-2xl text-gray-600 mb-12 leading-relaxed max-w-3xl mx-auto">
-              Not your grandma's betting platform. 
+              Not your grandmas betting platform. 
               Unless your grandma is really into smart contracts and lightning-fast settlements. 
-              In that case, tell her she's awesome! 🎰
+              In that case, tell her she is awesome! 🎰
             </p>
             <div className="flex justify-center gap-6">
               <button 
@@ -142,7 +142,7 @@ const Home: NextPage = () => {
 
           <div className="text-center mb-20">
             <h2 className="text-4xl font-black mb-4 text-gray-800">
-              Why We're Actually Different
+              Why We Are Actually Different
               <span className="inline-block ml-3 transform animate-wiggle">✨</span>
             </h2>
             <p className="text-xl text-gray-600 mb-16">
