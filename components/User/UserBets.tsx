@@ -45,6 +45,11 @@ const UserBets: React.FC = () => {
     functionName: 'nextBetId',
   });
 
+  const handleClaimClick = (betId: number) => {
+    // Replace with your external claiming URL
+    window.open(`https://claim-winnings.vercel.app/${betId}`, '_blank');
+  };
+
   const fetchUserBets = async () => {
     if (betsCount && publicClient && address) {
       setIsLoading(true);
@@ -208,16 +213,44 @@ const UserBets: React.FC = () => {
                 </div>
               </div>
               {bet.isResolved && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">Outcome</h4>
-                  <p className={`font-medium ${
-                    bet.winningOption === bet.option
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                  }`}>
-                    {bet.winningOption === 1 ? 'Yes' : 'No'}
-                  </p>
-                </div>
+                <>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-1">Outcome</h4>
+                    <p className={`font-medium ${
+                      bet.winningOption === bet.option
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }`}>
+                      {bet.winningOption === 1 ? 'Yes' : 'No'}
+                    </p>
+                  </div>
+                  {bet.winningOption === bet.option && (
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent triggering the card expansion
+                        handleClaimClick(bet.id);
+                      }}
+                      className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <svg 
+                        className="w-5 h-5" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth="2" 
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      Claim Winnings
+                    </motion.button>
+                  )}
+                </>
               )}
               <div>
                 <h4 className="text-sm font-medium text-gray-500 mb-1">End Time</h4>

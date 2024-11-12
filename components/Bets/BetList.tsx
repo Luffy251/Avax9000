@@ -64,13 +64,17 @@ const BetList: React.FC = () => {
                 winningOption: Number(bet[8])
               };
               
-              console.log(`Processed bet ${i}:`, betObject);
-              fetchedBets.push(betObject);
+              // Only add bets that are not resolved and haven't expired
+              const currentTime = BigInt(Math.floor(Date.now() / 1000));
+              if (!betObject.isResolved && betObject.endTime > currentTime) {
+                console.log(`Adding active bet ${i}:`, betObject);
+                fetchedBets.push(betObject);
+              }
             } catch (err) {
               console.error(`Error fetching bet ${i}:`, err);
             }
           }
-          console.log('All fetched bets:', fetchedBets);
+          console.log('All active bets:', fetchedBets);
           setBets(fetchedBets);
         } catch (err) {
           console.error('Error fetching bets:', err);
@@ -94,9 +98,9 @@ const BetList: React.FC = () => {
 
   return (
     <div className="mt-8">
-      <h2 className="text-2xl font-bold mb-4">All Bets (Total: {bets.length})</h2>
+      <h2 className="text-2xl font-bold mb-4">Active Bets (Total: {bets.length})</h2>
       {bets.length === 0 ? (
-        <p>No bets available at the moment.</p>
+        <p>No active bets available at the moment.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {bets.map((bet) => (
