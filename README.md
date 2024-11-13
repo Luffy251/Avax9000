@@ -1,36 +1,108 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BetWin - Decentralized Betting Platform on Avalanche 🎲
 
-## Getting Started
+BetWin is a modern, user-friendly decentralized betting platform built on the Avalanche blockchain. Create custom betting events, participate in bets, and earn rewards in a transparent and trustless environment.
 
-First, run the development server:
+## 🌟 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### For Bettors
+- **Create Custom Bets**: Set up binary outcome betting events with customizable duration
+- **Participate in Bets**: Browse and join active betting pools
+- **Smart Settlement**: Automatic winnings calculation and distribution
+- **User Dashboard**: Track your active and resolved bets
+- **Instant Claims**: Claim your winnings with one click
+- **Real-time Updates**: Live updates on bet status and pool sizes
+
+### For Bet Creators
+- **Earn Rewards**: Get 3% of the total pool size as a creator fee
+- **Flexible Duration**: Set betting periods from 1 hour to 30 days
+- **Resolution Control**: Resolve your bets when the outcome is known
+- **Creator Dashboard**: Manage all your created bets in one place
+
+### Platform Features
+- **Lightning Fast**: Built on Avalanche for near-instant finality
+- **Low Fees**: Minimal transaction costs on Avalanche
+- **Transparent**: All betting logic secured by smart contracts
+- **Mobile Responsive**: Seamless experience across all devices
+- **User-Friendly**: Modern UI with smooth animations and transitions
+
+## 🔧 Technical Stack
+
+### Frontend
+- Next.js for server-side rendering
+- TailwindCSS for styling
+- Framer Motion for animations
+- RainbowKit for wallet connection
+- wagmi for blockchain interactions
+
+### Smart Contracts
+- Solidity 0.8.19
+- OpenZeppelin contracts for security
+- Non-custodial design
+- Automated settlement logic
+
+### Blockchain
+- Avalanche C-Chain Testnet
+- EVM compatible
+- Smart contract powered
+
+## 🎯 How It Works
+
+### Creating a Bet
+1. Connect your wallet
+2. Click "Create Bet"
+3. Enter bet description
+4. Set duration (1 hour to 30 days)
+5. Confirm transaction
+6. Share with participants
+
+### Placing a Bet
+1. Browse available bets
+2. Choose your position (Yes/No)
+3. Enter bet amount
+4. Confirm transaction
+5. Wait for resolution
+
+### Resolution & Claiming
+1. Creator resolves bet after end time
+2. Winners can claim their share
+3. Automatic fee distribution to creator
+4. Proportional winnings based on bet size
+
+## 💎 Pool Distribution
+
+For each bet:
+- 97% distributed among winners
+- 3% to bet creator
+- Proportional distribution based on bet size
+
+Example:
 ```
+Total Pool: 100 AVAX
+Yes Pool: 40 AVAX (2 bettors: 15 & 25 AVAX)
+No Pool: 60 AVAX (3 bettors)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+If "Yes" wins:
+- Creator gets: 3 AVAX (3%)
+- First bettor (15 AVAX) gets: ~36.5 AVAX
+- Second bettor (25 AVAX) gets: ~60.5 AVAX
+```
+## 🛣️ Roadmap
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Phase 1 (Current)
+- ✅ Basic betting functionality
+- ✅ User dashboard
+- ✅ Creator rewards
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Phase 2
+- Multiple outcome bets
+- Social features
+- Bet categories
+- Advanced analytics
 
-## Learn More
+### Phase 3
+- Liquidity pools
+- Token integration
+- Governance system
+- Mobile app
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built with ❤️ by XavierOP877
