@@ -3,9 +3,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -41,7 +43,7 @@ const Navbar: React.FC = () => {
             </span>
           </Link>
 
-          {/* Center Navigation */}
+          {/* Center Navigation - Desktop */}
           <div className="hidden md:block flex-1 mx-8">
             <div className="flex items-center justify-center">
               <div className="flex items-center space-x-1 bg-black/20 rounded-full p-1">
@@ -75,16 +77,62 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Connect Button */}
-          <div className="flex items-center">
+          {/* Right Section - Connect Button & Mobile Menu */}
+          <div className="flex items-center gap-4">
             <motion.div
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               <ConnectButton />
             </motion.div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 rounded-lg bg-purple-500/10 text-purple-400 hover:text-purple-300 transition-colors"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden border-t border-purple-500/10 py-4"
+            >
+              <div className="flex flex-col space-y-2">
+                {menuItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    href={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <motion.div
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        router.pathname === item.path
+                          ? 'bg-purple-500/20 text-white'
+                          : 'text-gray-300 hover:text-white hover:bg-purple-500/10'
+                      }`}
+                      whileHover={{ x: 4 }}
+                    >
+                      {item.label}
+                    </motion.div>
+                  </Link>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </nav>
   );
