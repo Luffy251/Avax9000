@@ -224,7 +224,7 @@ const CreatedBets: React.FC = () => {
           </div>
         ) : createdBets.length === 0 ? (
           <div className="text-center py-12 text-gray-600">
-            You haven't created any bets yet
+            You have not created any bets yet
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

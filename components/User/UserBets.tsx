@@ -311,9 +311,9 @@ const UserBets: React.FC = () => {
                             </span>
                           </div>
                           <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Creator Fee (5%)</span>
+                            <span className="text-gray-600">Creator Fee (3%)</span>
                             <span className="font-medium">
-                              {formatEther((winnings * BigInt(5)) / BigInt(95))} AVAX
+                              {formatEther((winnings * BigInt(3)) / BigInt(97))} AVAX
                             </span>
                           </div>
                           <div className="border-t border-gray-200 pt-2 flex justify-between font-medium">

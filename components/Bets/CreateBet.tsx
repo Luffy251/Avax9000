@@ -54,7 +54,7 @@ const CreateBet: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    let durationInSeconds = parseInt(duration) * (timeUnit === 'days' ? 86400 : 3600);
+    const durationInSeconds = parseInt(duration) * (timeUnit === 'days' ? 86400 : 3600);
     
     try {
       createBet({
@@ -176,7 +176,7 @@ const CreateBet: React.FC = () => {
                 <ul className="list-disc ml-4 mt-1 space-y-1">
                   <li>Minimum duration: 1 hour</li>
                   <li>Maximum duration: 30 days</li>
-                  <li>You'll earn 3% of the total betting pool as the creator</li>
+                  <li>You will earn 3% of the total betting pool as the creator</li>
                   <li>Once created, the duration cannot be modified</li>
                 </ul>
               </div>
