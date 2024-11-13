@@ -1,67 +1,75 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { usePublicClient, useAccount, useContractRead } from 'wagmi';
+import { usePublicClient, useAccount } from 'wagmi';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../../config';
 import { formatEther } from 'viem';
 
+const CHUNK_SIZE = 2000; // Maximum blocks per request
+
 const UserWinnings: React.FC = () => {
   const [totalWinnings, setTotalWinnings] = useState('0');
-  const [error, setError] = useState<string | null>(null);
   const [isClient, setIsClient] = useState(false);
   const publicClient = usePublicClient();
   const { address } = useAccount();
-
-  const { data: betsCount } = useContractRead({
-    address: CONTRACT_ADDRESS,
-    abi: CONTRACT_ABI,
-    functionName: 'nextBetId',
-  });
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   useEffect(() => {
-    const fetchUserWinnings = async () => {
-      if (betsCount && publicClient && address) {
-        try {
-          let winnings = BigInt(0);
-          for (let i = 0; i < Number(betsCount); i++) {
-            const bet = await publicClient.readContract({
-              address: CONTRACT_ADDRESS,
-              abi: CONTRACT_ABI,
-              functionName: 'bets',
-              args: [BigInt(i)],
-            }) as any;
-            if (bet.isResolved) {
-              const userWinnings = await publicClient.readContract({
-                address: CONTRACT_ADDRESS,
-                abi: CONTRACT_ABI,
-                functionName: 'calculateWinnings',
-                args: [BigInt(i), address],
-              }) as bigint;
-              winnings += userWinnings;
-            }
+    const fetchClaimedWinnings = async () => {
+      if (!publicClient || !address) return;
+
+      try {
+        // Get the most recent block
+        const latestBlock = await publicClient.getBlockNumber();
+        let total = 0n;
+
+        // Get deployment block or use a known starting block
+        const deploymentBlock = 36656282n - 10000n; // Adjust this to your contract deployment block
+        
+        // Fetch in chunks of 2000 blocks
+        for (let fromBlock = deploymentBlock; fromBlock < latestBlock; fromBlock += BigInt(CHUNK_SIZE)) {
+          const toBlock = (fromBlock + BigInt(CHUNK_SIZE)) > latestBlock 
+            ? latestBlock 
+            : fromBlock + BigInt(CHUNK_SIZE);
+
+          const logs = await publicClient.getLogs({
+            address: CONTRACT_ADDRESS,
+            event: {
+              type: 'event',
+              name: 'Withdrawal',
+              inputs: [
+                { indexed: true, type: 'address', name: 'user' },
+                { indexed: false, type: 'uint256', name: 'amount' }
+              ]
+            },
+            args: {
+              user: address as `0x${string}`
+            },
+            fromBlock: fromBlock,
+            toBlock: toBlock
+          });
+
+          for (const log of logs) {
+            const amount = BigInt(log.data);
+            total += amount;
+            console.log('Found withdrawal:', formatEther(amount));
           }
-          console.log('Total winnings:', winnings);
-          setTotalWinnings(formatEther(winnings));
-        } catch (err) {
-          console.error('Error fetching user winnings:', err);
-          setError('Failed to fetch your winnings. Please try again.');
         }
+
+        console.log('Total claimed winnings:', formatEther(total));
+        setTotalWinnings(formatEther(total));
+
+      } catch (error) {
+        console.error('Error fetching winnings:', error);
       }
     };
 
-    if (isClient) {
-      fetchUserWinnings();
+    if (isClient && address) {
+      fetchClaimedWinnings();
     }
-  }, [betsCount, publicClient, address, isClient]);
-
-  if (!isClient) return null;
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
-  }
+  }, [publicClient, address, isClient]);
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -73,9 +81,11 @@ const UserWinnings: React.FC = () => {
         className="relative overflow-hidden rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white"
       >
         <div className="relative z-10">
-          <p className="text-purple-100 mb-2">Total Earnings</p>
+          <p className="text-purple-100 mb-2">Total Claimed Earnings</p>
           <div className="flex items-baseline space-x-2">
-            <span className="text-4xl font-bold">{totalWinnings}</span>
+            <span className="text-4xl font-bold">
+              {parseFloat(totalWinnings).toFixed(4)}
+            </span>
             <span className="text-xl text-purple-100">AVAX</span>
           </div>
         </div>

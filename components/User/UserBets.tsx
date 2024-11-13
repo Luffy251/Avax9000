@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { usePublicClient, useAccount, useContractRead } from 'wagmi';
+import { usePublicClient, useAccount, useContractRead, useContractWrite, useWaitForTransaction } from 'wagmi';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../../config';
 import { formatEther } from 'viem';
+import { Trophy, Timer, Users, ArrowRight, Loader } from 'lucide-react';
 
 interface BetStructOutput {
   creator: string;
@@ -24,18 +25,25 @@ interface UserBet {
   winningOption: number;
   option: number;
   totalPool: bigint;
+  option1Pool: bigint;
+  option2Pool: bigint;
   creator: string;
   creationTime: bigint;
   endTime: bigint;
 }
 
 const UserBets: React.FC = () => {
+  // State declarations
   const [userBets, setUserBets] = useState<UserBet[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<'active' | 'resolved'>('active');
   const [expandedBetId, setExpandedBetId] = useState<number | null>(null);
+  const [claimingBetId, setClaimingBetId] = useState<number | null>(null);
+  const [claimTxHash, setClaimTxHash] = useState<string | null>(null);
+
+  // Contract hooks
   const publicClient = usePublicClient();
   const { address } = useAccount();
 
@@ -45,11 +53,47 @@ const UserBets: React.FC = () => {
     functionName: 'nextBetId',
   });
 
-  const handleClaimClick = (betId: number) => {
-    // Replace with your external claiming URL
-    window.open(`https://claim-winnings.vercel.app/${betId}`, '_blank');
+  const { write: claimWinnings, data: claimData } = useContractWrite({
+    address: CONTRACT_ADDRESS,
+    abi: CONTRACT_ABI,
+    functionName: 'claimWinnings',
+    onSuccess: (data) => {
+      setClaimTxHash(data.hash);
+    },
+    onError: (error: any) => {
+      setError(error?.message || 'Failed to claim winnings');
+      setClaimingBetId(null);
+      setTimeout(() => setError(null), 5000);
+    },
+  });
+
+  const { isLoading: isClaimPending } = useWaitForTransaction({
+    hash: claimTxHash as `0x${string}`,
+    onSuccess: () => {
+      fetchUserBets();
+      setClaimingBetId(null);
+      setClaimTxHash(null);
+    },
+    onError: (error) => {
+      setError('Transaction failed. Please try again.');
+      setClaimingBetId(null);
+      setClaimTxHash(null);
+      setTimeout(() => setError(null), 5000);
+    },
+  });
+
+  // Helper function to calculate winnings
+  const calculateWinnings = (bet: UserBet) => {
+    if (bet.winningOption !== bet.option) return BigInt(0);
+    
+    const winningPool = bet.winningOption === 1 ? bet.option1Pool : bet.option2Pool;
+    const userShare = (bet.amount * bet.totalPool) / winningPool;
+    const creatorFee = (userShare * BigInt(3)) / BigInt(100);
+    
+    return userShare - creatorFee;
   };
 
+  // Fetch bets function
   const fetchUserBets = async () => {
     if (betsCount && publicClient && address) {
       setIsLoading(true);
@@ -79,12 +123,13 @@ const UserBets: React.FC = () => {
               args: [BigInt(i)],
             }) as BetDataArray;
 
-            console.log(`Raw bet data for ID ${i}:`, betData);
             const bet: UserBet = {
               id: i,
               creator: betData[0],
               description: betData[1],
               totalPool: betData[2],
+              option1Pool: betData[3],
+              option2Pool: betData[4],
               amount: userBet1 > BigInt(0) ? userBet1 : userBet2,
               creationTime: betData[5],
               endTime: betData[6],
@@ -93,11 +138,9 @@ const UserBets: React.FC = () => {
               option: userBet1 > BigInt(0) ? 1 : 2
             };
 
-            console.log(`Processed bet ${i}:`, bet);
             fetchedBets.push(bet);
           }
         }
-        console.log('All fetched bets:', fetchedBets);
         setUserBets(fetchedBets);
       } catch (err) {
         console.error('Error fetching user bets:', err);
@@ -108,6 +151,7 @@ const UserBets: React.FC = () => {
     }
   };
 
+  // Event handlers
   const handleRefresh = async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
@@ -118,16 +162,214 @@ const UserBets: React.FC = () => {
     }
   };
 
+  const handleBetClick = (betId: number) => {
+    setExpandedBetId(expandedBetId === betId ? null : betId);
+  };
+
+  const handleClaimClick = async (betId: number) => {
+    const bet = userBets.find(b => b.id === betId);
+    if (!bet) return;
+
+    try {
+      setClaimingBetId(betId);
+      claimWinnings({
+        args: [BigInt(betId)],
+      });
+    } catch (error) {
+      console.error('Error claiming winnings:', error);
+      setError('Failed to claim winnings. Please try again.');
+      setClaimingBetId(null);
+    }
+  };
+
+  // Effects
   useEffect(() => {
     if (betsCount && publicClient && address) {
       fetchUserBets();
     }
   }, [betsCount, publicClient, address]);
+  const BetCard = ({ bet }: { bet: UserBet }) => {
+    const currentTime = Math.floor(Date.now() / 1000);
+    const isEnded = Number(bet.endTime) < currentTime;
+    const hasWon = bet.isResolved && bet.winningOption === bet.option;
+    const winnings = calculateWinnings(bet);
+    const winningPool = bet.winningOption === 1 ? bet.option1Pool : bet.option2Pool;
 
-  const handleBetClick = (betId: number) => {
-    setExpandedBetId(expandedBetId === betId ? null : betId);
+    return (
+      <motion.div
+        layoutId={`bet-${bet.id}`}
+        onClick={() => handleBetClick(bet.id)}
+        className="bg-white rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border border-gray-100"
+      >
+        <div className="flex justify-between items-start">
+          <div className="space-y-2">
+            <p className="text-purple-600 font-semibold text-lg">
+              Your Bet: {formatEther(bet.amount)} AVAX
+            </p>
+            <span
+              className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                bet.isResolved
+                  ? hasWon 
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700'
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}
+            >
+              {bet.isResolved 
+                ? hasWon ? 'Won' : 'Lost'
+                : 'Active'
+              }
+            </span>
+          </div>
+          <motion.div
+            animate={{ rotate: expandedBetId === bet.id ? 180 : 0 }}
+            transition={{ duration: 0.3 }}
+            className="text-gray-400"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </motion.div>
+        </div>
+
+        <AnimatePresence>
+          {expandedBetId === bet.id && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-4 pt-4 border-t border-gray-100"
+            >
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">Bet Description</h4>
+                  <p className="text-gray-800 font-medium bg-gray-50 p-3 rounded-lg">
+                    {bet.description || 'No description available'}
+                  </p>
+                </div>
+                
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-gray-500 mb-1">Your Choice</h4>
+                    <p className="text-purple-600 font-medium">
+                      {bet.option === 1 ? 'Yes' : 'No'}
+                    </p>
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-gray-500 mb-1">Total Pool</h4>
+                    <p className="text-gray-800 font-medium">
+                      {formatEther(bet.totalPool)} AVAX
+                    </p>
+                  </div>
+                </div>
+
+                {bet.isResolved && (
+                  <>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500 mb-1">Outcome</h4>
+                      <p className={`font-medium ${hasWon ? 'text-green-600' : 'text-red-600'}`}>
+                        {bet.winningOption === 1 ? 'Yes' : 'No'}
+                      </p>
+                    </div>
+
+                    {hasWon && winnings > BigInt(0) && (
+                      <>
+                        <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Your Bet</span>
+                            <span className="font-medium">{formatEther(bet.amount)} AVAX</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Total Pool</span>
+                            <span className="font-medium">{formatEther(bet.totalPool)} AVAX</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Winning Side Total</span>
+                            <span className="font-medium">{formatEther(winningPool)} AVAX</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Your Share</span>
+                            <span className="font-medium">
+                              {((Number(bet.amount) * 100) / Number(winningPool)).toFixed(2)}%
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Expected Winnings (Before Fee)</span>
+                            <span className="font-medium">
+                              {formatEther((bet.amount * bet.totalPool) / winningPool)} AVAX
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Creator Fee (5%)</span>
+                            <span className="font-medium">
+                              {formatEther((winnings * BigInt(5)) / BigInt(95))} AVAX
+                            </span>
+                          </div>
+                          <div className="border-t border-gray-200 pt-2 flex justify-between font-medium">
+                            <span className="text-green-600">Final Winnings</span>
+                            <span className="text-green-600">{formatEther(winnings)} AVAX</span>
+                          </div>
+                          <div className="text-sm text-gray-500 pt-2">
+                            <span>Net Profit: </span>
+                            <span className="font-medium text-green-600">
+                              {formatEther(winnings - bet.amount)} AVAX
+                            </span>
+                          </div>
+                        </div>
+
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleClaimClick(bet.id);
+                          }}
+                          disabled={claimingBetId === bet.id || isClaimPending}
+                          className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {claimingBetId === bet.id ? (
+                            <>
+                              <Loader className="w-4 h-4 animate-spin" />
+                              <span>Claiming...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Trophy className="w-4 h-4" />
+                              Claim Winnings
+                            </>
+                          )}
+                        </motion.button>
+                      </>
+                    )}
+                  </>
+                )}
+
+                <div>
+                  <h4 className="text-sm font-medium text-gray-500 mb-1">End Time</h4>
+                  <p className="text-gray-600">
+                    {new Date(Number(bet.endTime) * 1000).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
   };
 
+  // Error state
   if (error) {
     return (
       <motion.div
@@ -140,131 +382,7 @@ const UserBets: React.FC = () => {
     );
   }
 
-  const BetCard = ({ bet }: { bet: UserBet }) => (
-    <motion.div
-      layoutId={`bet-${bet.id}`}
-      onClick={() => handleBetClick(bet.id)}
-      className="bg-white rounded-xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border border-gray-100"
-    >
-      <div className="flex justify-between items-start">
-        <div className="space-y-2">
-          <p className="text-purple-600 font-semibold text-lg">
-            Your Bet: {formatEther(bet.amount)} AVAX
-          </p>
-          <span
-            className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
-              bet.isResolved
-                ? 'bg-green-100 text-green-700'
-                : 'bg-yellow-100 text-yellow-700'
-            }`}
-          >
-            {bet.isResolved ? 'Resolved' : 'Active'}
-          </span>
-        </div>
-        <motion.div
-          animate={{ rotate: expandedBetId === bet.id ? 180 : 0 }}
-          transition={{ duration: 0.3 }}
-          className="text-gray-400"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M19 9l-7 7-7-7"
-            />
-          </svg>
-        </motion.div>
-      </div>
-
-      <AnimatePresence>
-        {expandedBetId === bet.id && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="mt-4 pt-4 border-t border-gray-100"
-          >
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-1">Bet Description</h4>
-                <p className="text-gray-800 font-medium bg-gray-50 p-3 rounded-lg">
-                  {bet.description || 'No description available'}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-4">
-                <div className="flex-1">
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">Your Choice</h4>
-                  <p className="text-purple-600 font-medium">
-                    {bet.option === 1 ? 'Yes' : 'No'}
-                  </p>
-                </div>
-                <div className="flex-1">
-                  <h4 className="text-sm font-medium text-gray-500 mb-1">Total Pool</h4>
-                  <p className="text-gray-800 font-medium">
-                    {formatEther(bet.totalPool)} AVAX
-                  </p>
-                </div>
-              </div>
-              {bet.isResolved && (
-                <>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-1">Outcome</h4>
-                    <p className={`font-medium ${
-                      bet.winningOption === bet.option
-                        ? 'text-green-600'
-                        : 'text-red-600'
-                    }`}>
-                      {bet.winningOption === 1 ? 'Yes' : 'No'}
-                    </p>
-                  </div>
-                  {bet.winningOption === bet.option && (
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent triggering the card expansion
-                        handleClaimClick(bet.id);
-                      }}
-                      className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-medium hover:from-green-600 hover:to-green-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
-                    >
-                      <svg 
-                        className="w-5 h-5" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        viewBox="0 0 24 24"
-                      >
-                        <path 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          strokeWidth="2" 
-                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      Claim Winnings
-                    </motion.button>
-                  )}
-                </>
-              )}
-              <div>
-                <h4 className="text-sm font-medium text-gray-500 mb-1">End Time</h4>
-                <p className="text-gray-600">
-                  {new Date(Number(bet.endTime) * 1000).toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-
+  // Main return
   return (
     <div className="w-full">
       <div className="bg-white rounded-2xl shadow-lg p-6">

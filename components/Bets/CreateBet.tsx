@@ -2,157 +2,188 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useContractWrite, useAccount, useWaitForTransaction } from 'wagmi';
 import { CONTRACT_ADDRESS, CONTRACT_ABI } from '../../config';
+import { Clock, Info, Check, Loader } from 'lucide-react';
 import { useRouter } from 'next/router';
 
 const CreateBet: React.FC = () => {
+  const router = useRouter();
   const [description, setDescription] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [duration, setDuration] = useState('7');
+  const [timeUnit, setTimeUnit] = useState('days');
+  const [endTimeString, setEndTimeString] = useState<string>('');
   const [showSuccess, setShowSuccess] = useState(false);
   const { address } = useAccount();
-  const router = useRouter();
 
-  const { write: createBet, data: createBetData } = useContractWrite({
+  const { write: createBet, data: createData, isLoading: isWriteLoading } = useContractWrite({
     address: CONTRACT_ADDRESS,
     abi: CONTRACT_ABI,
     functionName: 'createBet',
   });
 
-  const { isLoading: isWaitingForTransaction, isSuccess } = useWaitForTransaction({
-    hash: createBetData?.hash,
+  const { isLoading: isTransactionPending, isSuccess } = useWaitForTransaction({
+    hash: createData?.hash,
+    onSuccess: () => {
+      setShowSuccess(true);
+      resetForm();
+      // Hide success message after 5 seconds
+      setTimeout(() => setShowSuccess(false), 5000);
+    },
   });
 
+  const isLoading = isWriteLoading || isTransactionPending;
+
+  // Update end time only on client side
   useEffect(() => {
-    if (isSuccess) {
-      setShowSuccess(true);
-      setDescription('');
-      
-      const timer = setTimeout(() => {
-        setShowSuccess(false);
-        router.push('/all-bets');
-      }, 3000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isSuccess, router]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!description || !address) return;
-
-    setIsSubmitting(true);
-    try {
-      await createBet({ args: [description] });
-    } catch (error) {
-      console.error('Error creating bet:', error);
-      setShowSuccess(false);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    const endTime = new Date(Date.now() + (parseInt(duration) * (timeUnit === 'days' ? 86400000 : 3600000)));
+    const formattedDate = endTime.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    setEndTimeString(formattedDate);
+  }, [duration, timeUnit]);
 
   const resetForm = () => {
     setDescription('');
-    setShowSuccess(false);
+    setDuration('7');
+    setTimeUnit('days');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    let durationInSeconds = parseInt(duration) * (timeUnit === 'days' ? 86400 : 3600);
+    
+    try {
+      createBet({
+        args: [description, BigInt(durationInSeconds)],
+      });
+    } catch (error) {
+      console.error('Error creating bet:', error);
+    }
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-lg p-6 md:p-8"
-      >
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-            Create a New Bet
-          </h1>
-          {description && !isSubmitting && (
-            <motion.button
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              onClick={resetForm}
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-200"
-            >
-              Reset Form
-            </motion.button>
-          )}
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <label 
-              htmlFor="description" 
-              className="block text-sm font-medium text-gray-700"
-            >
-              Bet Description
-            </label>
-            <motion.textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="E.g., Will Bitcoin reach $100,000 by the end of 2024?"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 min-h-[120px] text-gray-800"
-              whileFocus={{ scale: 1.01 }}
-              disabled={isSubmitting || isWaitingForTransaction}
-            />
-            <p className="text-sm text-gray-500">
-              Make sure your description is clear and specific about the betting conditions.
-            </p>
-          </div>
-
-          <motion.button
-            type="submit"
-            disabled={!description || isSubmitting || isWaitingForTransaction}
-            className={`w-full py-3 rounded-lg font-medium text-white transition-all duration-200 
-              ${(!description || isSubmitting || isWaitingForTransaction) 
-                ? 'bg-purple-400 cursor-not-allowed' 
-                : 'bg-purple-500 hover:bg-purple-600'}`}
-            whileHover={!isSubmitting ? { scale: 1.02 } : {}}
-            whileTap={!isSubmitting ? { scale: 0.98 } : {}}
-          >
-            {isSubmitting || isWaitingForTransaction ? (
-              <div className="flex items-center justify-center space-x-2">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                />
-                <span>Creating Bet...</span>
-              </div>
-            ) : (
-              'Create Bet'
-            )}
-          </motion.button>
-        </form>
-
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-2xl mx-auto">
+        {/* Success Notification */}
         <AnimatePresence>
           {showSuccess && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="mt-4 p-4 bg-green-50 rounded-lg"
+              exit={{ opacity: 0, y: -20 }}
+              className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 flex items-center gap-3"
             >
-              <div className="flex items-center justify-center space-x-2">
-                <svg 
-                  className="w-5 h-5 text-green-500" 
-                  fill="none" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  strokeWidth="2" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path d="M5 13l4 4L19 7" />
-                </svg>
-                <p className="text-green-600 font-medium">
-                  Bet created successfully! Redirecting to all bets...
-                </p>
+              <Check className="w-5 h-5 text-green-500" />
+              <div>
+                <p className="text-green-800 font-medium">Bet Created Successfully!</p>
+                <p className="text-green-600 text-sm">Your bet has been created and is now live.</p>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          <h1 className="text-3xl font-bold text-gray-800 mb-8">Create New Bet</h1>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Bet Description
+              </label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                disabled={isLoading}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 min-h-[100px] disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder="What are people betting on?"
+                required
+              />
+            </div>
+
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Betting Duration
+              </label>
+              
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <input
+                    type="number"
+                    min="1"
+                    max={timeUnit === 'days' ? '30' : '720'}
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    disabled={isLoading}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    required
+                  />
+                </div>
+
+                <select
+                  value={timeUnit}
+                  onChange={(e) => setTimeUnit(e.target.value)}
+                  disabled={isLoading}
+                  className="px-4 py-3 rounded-xl border border-gray-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-200 bg-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <option value="hours">Hours</option>
+                  <option value="days">Days</option>
+                </select>
+              </div>
+
+              {endTimeString && (
+                <div className="bg-purple-50 rounded-xl p-4 flex items-start gap-3">
+                  <Clock className="w-5 h-5 text-purple-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm text-purple-700 font-medium">
+                      Betting will end on:
+                    </p>
+                    <p className="text-sm text-purple-600">
+                      {endTimeString}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <motion.button
+              whileHover={!isLoading ? { scale: 1.02 } : {}}
+              whileTap={!isLoading ? { scale: 0.98 } : {}}
+              type="submit"
+              disabled={isLoading}
+              className="relative w-full py-3 px-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-medium hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span className={`${isLoading ? 'invisible' : ''}`}>
+                Create Bet
+              </span>
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Loader className="w-5 h-5 animate-spin" />
+                  <span className="ml-2">
+                    {isWriteLoading ? 'Confirm in Wallet...' : 'Creating Bet...'}
+                  </span>
+                </div>
+              )}
+            </motion.button>
+
+            <div className="bg-blue-50 rounded-xl p-4 flex items-start gap-3">
+              <Info className="w-5 h-5 text-blue-500 mt-0.5" />
+              <div className="text-sm text-blue-700">
+                <p className="font-medium">Important Notes:</p>
+                <ul className="list-disc ml-4 mt-1 space-y-1">
+                  <li>Minimum duration: 1 hour</li>
+                  <li>Maximum duration: 30 days</li>
+                  <li>You'll earn 3% of the total betting pool as the creator</li>
+                  <li>Once created, the duration cannot be modified</li>
+                </ul>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS = "0xE0606a5EEC48e2EC70fFab6408E6111871c54718";
+export const CONTRACT_ADDRESS = "0xA73aBfeBE82FD20D0c5dD1bBfD98CB7186Dd698a";
 export const CONTRACT_ABI = [
   {
     "inputs": [],
@@ -126,7 +126,7 @@ export const CONTRACT_ABI = [
   },
   {
     "inputs": [],
-    "name": "BET_DURATION",
+    "name": "CREATOR_FEE_PERCENTAGE",
     "outputs": [
       {
         "internalType": "uint256",
@@ -139,7 +139,20 @@ export const CONTRACT_ABI = [
   },
   {
     "inputs": [],
-    "name": "CREATOR_FEE_PERCENTAGE",
+    "name": "MAXIMUM_DURATION",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MINIMUM_DURATION",
     "outputs": [
       {
         "internalType": "uint256",
@@ -228,6 +241,11 @@ export const CONTRACT_ABI = [
         "internalType": "string",
         "name": "_description",
         "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_duration",
+        "type": "uint256"
       }
     ],
     "name": "createBet",

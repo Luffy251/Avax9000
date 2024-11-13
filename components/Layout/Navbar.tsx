@@ -21,6 +21,7 @@ const Navbar: React.FC = () => {
     { path: '/create-bet', label: 'Create Bet' },
     { path: '/all-bets', label: 'All Bets' },
     { path: '/my-bets', label: 'My Bets' },
+    { path: '/created-bets', label:'Created Bets'}
   ];
 
   return (
