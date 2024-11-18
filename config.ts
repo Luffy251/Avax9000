@@ -1,4 +1,4 @@
-export const CONTRACT_ADDRESS = "0xA73aBfeBE82FD20D0c5dD1bBfD98CB7186Dd698a";
+export const CONTRACT_ADDRESS = "0x24FE845Ad99FdA0b18E6C1BFfb6F88F885e84855";
 export const CONTRACT_ABI = [
   {
     "inputs": [],
@@ -395,14 +395,14 @@ export const CONTRACT_ABI = [
     "type": "receive"
   }
 ];
-export const AVALANCHE_FUJI_TESTNET_PARAMS = {
-  chainId: "43113",
-  chainName: "Avalanche FUJI C-Chain",
+export const Etna_C_Chain_PARAMS = {
+  chainId: "43117",
+  chainName: "Etna C-Chain",
   nativeCurrency: {
     name: "Avalanche",
     symbol: "AVAX",
     decimals: 18,
   },
-  rpcUrls: ["https://api.avax-test.network/ext/bc/C/rpc"],
-  blockExplorerUrls: ["https://testnet.snowtrace.io/"],
+  rpcUrls: ["https://etna.avax-dev.network/ext/bc/C/rpc"],
+  blockExplorerUrls: ["https://2ffd1590.etna-83w.pages.dev/devnet-c-chain"],
 };

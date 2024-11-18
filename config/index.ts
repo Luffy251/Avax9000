@@ -126,7 +126,7 @@ export const CONTRACT_ABI = [
   },
   {
     "inputs": [],
-    "name": "BET_DURATION",
+    "name": "CREATOR_FEE_PERCENTAGE",
     "outputs": [
       {
         "internalType": "uint256",
@@ -139,7 +139,20 @@ export const CONTRACT_ABI = [
   },
   {
     "inputs": [],
-    "name": "CREATOR_FEE_PERCENTAGE",
+    "name": "MAXIMUM_DURATION",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "MINIMUM_DURATION",
     "outputs": [
       {
         "internalType": "uint256",
@@ -228,6 +241,11 @@ export const CONTRACT_ABI = [
         "internalType": "string",
         "name": "_description",
         "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_duration",
+        "type": "uint256"
       }
     ],
     "name": "createBet",
@@ -377,14 +395,14 @@ export const CONTRACT_ABI = [
     "type": "receive"
   }
 ];
-export const AVALANCHE_FUJI_TESTNET_PARAMS = {
-  chainId: "43113",
-  chainName: "Avalanche FUJI C-Chain",
+export const Etna_C_Chain_PARAMS = {
+  chainId: "43117",
+  chainName: "Etna C-Chain",
   nativeCurrency: {
     name: "Avalanche",
     symbol: "AVAX",
     decimals: 18,
   },
-  rpcUrls: ["https://api.avax-test.network/ext/bc/C/rpc"],
-  blockExplorerUrls: ["https://testnet.snowtrace.io/"],
+  rpcUrls: ["https://etna.avax-dev.network/ext/bc/C/rpc"],
+  blockExplorerUrls: ["https://2ffd1590.etna-83w.pages.dev/devnet-c-chain"],
 };
